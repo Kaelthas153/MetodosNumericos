@@ -1,4 +1,4 @@
-# Métodos Numéricos - Tarea 2, 3 y 4
+# Métodos Numéricos
 
 Este repositorio contiene el desarrollo y la implementación de sistemas de ecuaciones lineales resueltos mediante tres métodos iterativos fundamentales: **Gradiente Conjugado (CG)**, **Sobre-relajación Sucesiva (SOR)** y **Gauss-Seidel**.
 
