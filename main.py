@@ -1,7 +1,7 @@
 import streamlit as st
 import numpy as np
 
-st.set_page_config(page_title="Tarea 3 - Métodos Iterativos", layout="wide")
+st.set_page_config(page_title="Tarea 6 - Métodos Iterativos", layout="wide")
 
 # --- PANTALLA 1: CONFIGURACIÓN PRINCIPAL ---
 st.title("🧮 Configuración del Sistema Lineal")
