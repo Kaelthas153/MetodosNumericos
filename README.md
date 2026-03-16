@@ -1,53 +1,71 @@
 # Métodos Numéricos
 
-Este repositorio contiene el desarrollo y la implementación de sistemas de ecuaciones lineales resueltos mediante tres métodos iterativos fundamentales: **Gradiente Conjugado (CG)**, **Sobre-relajación Sucesiva (SOR)** y **Gauss-Seidel**.
+Este repositorio contiene la implementación y documentación de diversos métodos numéricos para la resolución de sistemas de ecuaciones lineales y análisis de convergencia, desarrollados como parte del plan de estudios del curso.
 
 ---
 
-## 📂 Contenido del Proyecto
-
-* **`Tarea3.py`**: Script de Python que resuelve el sistema planteado en la Tarea 2. Muestra el desarrollo paso a paso (iteración por iteración) en la consola.
-* **`Tarea4.xlsx`**: Hoja de cálculo que contiene las tablas de iteraciones, los valores de las variables en cada paso y el cálculo del error residual para los tres métodos.
-* **`Métodos númericos.pdf`**: Documento con el planteamiento teórico, la justificación del sistema elegido y la solución exacta conocida.
-* **`requirements.txt`**: Archivo de configuración que lista las librerías necesarias (como NumPy) para ejecutar los scripts.
+## Aplicación Interactiva (Tarea 6)
+Puedes acceder a la versión web de la aplicación desplegada en Streamlit a través del siguiente enlace:
+👉 [Link de la aplicación en Streamlit](https://metodosnumericos-bjppwca8m5a7s5u3v5fepk.streamlit.app/)
 
 ---
 
-## 🛠️ Instrucciones de Ejecución (Tarea 3)
+## Contenido del Repositorio
+El repositorio está organizado de la siguiente manera:
 
-Para ejecutar la resolución del sistema en tu máquina local, sigue estos pasos:
+* **Tarea3.py**: Script de Python diseñado para ejecución en consola (CLI).
+* **Tarea4.xlsx**: Archivo de Excel con cálculos comparativos y análisis de errores.
+* **tarea6.py**: Aplicación interactiva desarrollada con el framework Streamlit.
+* **Métodos númericos.pdf**: Documentación técnica detallada y reportes de resultados.
+* **requirements.txt**: Listado de dependencias necesarias para el entorno de ejecución.
 
-1.  **Asegúrate de tener Python instalado.**
-2.  **Instalar la librería necesaria (NumPy):**
+---
+
+## Instrucciones de Uso Local
+
+Para ejecutar los scripts en tu entorno local, sigue estos pasos:
+
+1.  **Instalar dependencias:**
+    Asegúrate de tener Python instalado y ejecuta el siguiente comando para instalar las librerías necesarias (como `numpy`):
     ```bash
-    pip install numpy
+    pip install numpy streamlit
     ```
-3.  **Ejecutar el script:**
+
+2.  **Ejecutar Script de Consola (Tarea 3):**
     ```bash
     python Tarea3.py
     ```
 
-El programa mostrará en consola los resultados de cada iteración, permitiendo verificar la convergencia hacia la solución exacta: $$x = [1, 2, -1]^T$$.
+3.  **Ejecutar Aplicación Interactiva (Tarea 6):**
+    ```bash
+    streamlit run tarea6.py
+    ```
 
 ---
 
-## 📊 Descripción de los Métodos Utilizados
+## Descripción de los Métodos
 
 ### 1. Gauss-Seidel
-Es un método iterativo para resolver sistemas de ecuaciones lineales. Se diferencia del método de Jacobi porque utiliza los valores ya actualizados de las variables dentro de la misma iteración para calcular los siguientes.
+Es un método iterativo utilizado para resolver sistemas de ecuaciones lineales $Ax = b$. A diferencia del método de Jacobi, utiliza los valores actualizados de las variables tan pronto como están disponibles en la iteración actual, lo que acelera la convergencia.
 
-### 2. Sobre-relajación Sucesiva (SOR)
-Es una variante del método de Gauss-Seidel que introduce un factor de relajación $$\omega$$. En este proyecto se utilizó $$\omega = 1.05$$ para acelerar la velocidad de convergencia.
+### 2. Sobrerrelajación Sucesiva (SOR)
+Es una variante del método de Gauss-Seidel que busca acelerar la convergencia mediante un factor de relajación $\omega$. Para este proyecto, se ha determinado un valor óptimo de $\omega = 1.05$. La fórmula de actualización es:
+$$x_i^{(k+1)} = (1 - \omega)x_i^{(k)} + \frac{\omega}{a_{ii}} \left( b_i - \sum_{j < i} a_{ij}x_j^{(k+1)} - \sum_{j > i} a_{ij}x_j^{(k)} \right)$$
 
-### 3. Gradiente Conjugado (CG)
-Es un algoritmo para la solución numérica de sistemas de ecuaciones lineales cuyas matrices son simétricas y definidas positivas. Es un método de búsqueda que, teóricamente, alcanza la solución exacta en un número de pasos igual a la dimensión de la matriz.
+### 3. Gradiente Conjugado
+Es un algoritmo para la solución numérica de sistemas de ecuaciones lineales cuyas matrices son simétricas y definidas positivas. Se basa en la minimización de la función cuadrática:
+$$f(x) = \frac{1}{2}x^T Ax - b^T x$$
+Utilizando direcciones de búsqueda ortogonales (conjugadas) respecto a la matriz $A$.
+
+---
+
+## Conclusiones (Tarea 4)
+Tras el análisis realizado en el archivo Excel, se concluye que:
+* **Eficiencia:** El método de **Gradiente Conjugado** presenta la mayor velocidad de convergencia en sistemas de gran escala y matrices dispersas.
+* **Optimización:** El uso de **SOR con $\omega = 1.05$** reduce significativamente el número de iteraciones necesarias en comparación con Gauss-Seidel estándar, aunque su estabilidad depende críticamente de la elección de dicho parámetro.
 
 ---
 
-## 📉 Resumen de Resultados (Tarea 4)
-En la hoja de cálculo adjunta se observa cómo el **Gradiente Conjugado** converge con mayor precisión en menos pasos, mientras que **SOR** presenta una mejora notable en comparación con **Gauss-Seidel** estándar.
-
----
 **Autor:** Kaelthas153  
 **Curso:** Métodos Numéricos  
 **Fecha:** Marzo 2026
