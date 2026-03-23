@@ -81,4 +81,49 @@ with pestana_cg:
         cg_pasos.append(x_c.copy())
 
     paso_cg = st.select_slider("Moverse entre iteraciones (CG)", options=range(len(cg_pasos)), key="cg_slider")
-    st.metric(f"Vector x en iteración {paso_cg}", f"[{cg_pasos[paso_cg][0]:.4f}, {cg_pasos[paso_cg][1]:.4f}, {cg_pasos[paso_cg][2]:.4f}]")
+    st.metric(f"Vector x en iteración {paso_cg}", f"[{cg_pasos[paso_cg][0]:.4f}, {cg_pasos[paso_cg][1]:.4f}, {cg_pasos[paso_cg][2]:.4f}]")# --- EXPORTAR A EXCEL ---
+st.markdown("---")
+st.header("📥 Descargar Resultados")
+
+def generar_csv_descarga(A, b, total_iter, omega, n):
+    rows = []
+    
+    # GS
+    rows.append(["MÉTODO: GAUSS-SEIDEL"])
+    rows.append(["Iteración"] + [f"x{i+1}" for i in range(n)])
+    x = np.zeros(n)
+    rows.append([0] + list(np.round(x, 4)))
+    for i in range(1, total_iter + 1):
+        for j in range(n):
+            suma = b[j] - np.dot(A[j, :j], x[:j]) - np.dot(A[j, j+1:], x[j+1:])
+            x[j] = suma / A[j, j]
+        rows.append([i] + list(np.round(x, 4)))
+    
+    rows.append([]) # Espacio
+    
+    # SOR
+    rows.append([f"MÉTODO: SOR (w={omega})"])
+    rows.append(["Iteración"] + [f"x{i+1}" for i in range(n)])
+    x_s = np.zeros(n)
+    rows.append([0] + list(np.round(x_s, 4)))
+    for i in range(1, total_iter + 1):
+        for j in range(n):
+            suma = b[j] - np.dot(A[j, :j], x_s[:j]) - np.dot(A[j, j+1:], x_s[j+1:])
+            x_gs_val = suma / A[j, j]
+            x_s[j] = (1 - omega) * x_s[j] + omega * x_gs_val
+        rows.append([i] + list(np.round(x_s, 4)))
+        
+    # Convertir a texto CSV
+    csv_text = ""
+    for row in rows:
+        csv_text += ",".join([str(item) for item in row]) + "\n"
+    return csv_text
+
+csv_data = generar_csv_descarga(A_editada, b_editado, total_iter, omega, n)
+
+st.download_button(
+    label="Descargar Tabla de Iteraciones (CSV)",
+    data=csv_data,
+    file_name="Resultados_Iterativos.csv",
+    mime="text/csv",
+)
