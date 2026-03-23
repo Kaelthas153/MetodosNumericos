@@ -18,7 +18,6 @@ default_A = np.array([
     [0.0, 0.0, 0.0, -1.0, 4.0]
 ])
 default_b = np.array([20.0, 40.0, 60.0, 80.0, 160.0])
-x_exacto = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
 
 col1, col2 = st.columns([2, 1])
 
@@ -90,9 +89,6 @@ with tab_cg:
         st.metric("Resultado x", f"{np.round(hist_cg[val_c], 4)}")
     except Exception:
         st.error("Error: La matriz editada no es simétrica definida positiva.")
-
-st.sidebar.markdown("---")
-st.sidebar.success(f"**Solución Exacta:**\n{x_exacto}")
 
 # --- EXPORTAR A EXCEL (CSV) ---
 st.markdown("---")
