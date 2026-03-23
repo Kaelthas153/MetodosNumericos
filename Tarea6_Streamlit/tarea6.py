@@ -1,89 +1,102 @@
 import streamlit as st
 import numpy as np
+import pandas as pd
 
-st.set_page_config(page_title="Tarea 6 - Métodos Iterativos", layout="wide")
+# --- CONFIGURACIÓN DE PÁGINA ---
+st.set_page_config(page_title="Tarea 6 - Caso Real", layout="wide")
 
-# --- PANTALLA 1: CONFIGURACIÓN PRINCIPAL ---
-st.title("🧮 Configuración del Sistema Lineal")
+st.title("🌡️ Aplicación de Métodos Numéricos")
+st.markdown("**Caso de Estudio:** Distribución de temperatura en una aleta de enfriamiento (Nodos=5).")
+st.write("Modifica los coeficientes de la Matriz $A$ y el vector $b$ para ver cómo cambia la solución.")
+
+# --- DATOS POR DEFECTO ---
+default_A = np.array([
+    [4.0, -1.0, 0.0, 0.0, 0.0],
+    [-1.0, 4.0, -1.0, 0.0, 0.0],
+    [0.0, -1.0, 4.0, -1.0, 0.0],
+    [0.0, 0.0, -1.0, 4.0, -1.0],
+    [0.0, 0.0, 0.0, -1.0, 4.0]
+])
+default_b = np.array([20.0, 40.0, 60.0, 80.0, 160.0])
+x_exacto = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
+
+col1, col2 = st.columns([2, 1])
+
+with col1:
+    st.subheader("Matriz de Coeficientes (A)")
+    df_A = pd.DataFrame(default_A, columns=["x1", "x2", "x3", "x4", "x5"])
+    A_editada = st.data_editor(df_A, use_container_width=True).to_numpy()
+
+with col2:
+    st.subheader("Vector de Términos Indep. (b)")
+    df_b = pd.DataFrame(default_b, columns=["b"])
+    b_editado = st.data_editor(df_b, use_container_width=True).to_numpy().flatten()
+
+# --- BARRA LATERAL ---
+st.sidebar.header("⚙️ Parámetros")
+total_iter = st.sidebar.slider("Número máximo de iteraciones", 1, 20, 5)
+omega = st.sidebar.number_input("Factor SOR (ω)", value=1.15, step=0.05)
+n = len(b_editado)
+
+# --- PANTALLAS DE MÉTODOS ---
 st.markdown("---")
+tab_gs, tab_sor, tab_cg = st.tabs(["Gauss-Seidel", "SOR", "Gradiente Conjugado"])
 
-col_input, col_info = st.columns([1, 1])
-
-with col_input:
-    st.subheader("1. Ingrese los coeficientes de la Matriz A")
-    # Usamos el ejemplo de la Tarea 2 como default
-    a11 = st.number_input("A[1,1]", value=10.0)
-    a12 = st.number_input("A[1,2]", value=-1.0)
-    a13 = st.number_input("A[1,3]", value=2.0)
-    
-    st.subheader("2. Ingrese el vector b")
-    b1 = st.number_input("b[1]", value=6.0)
-    b2 = st.number_input("b[2]", value=25.0)
-    b3 = st.number_input("b[3]", value=-11.0)
-
-with col_info:
-    st.subheader("3. Parámetros de Control")
-    total_iter = st.slider("Máximo de iteraciones a calcular", 1, 20, 5)
-    omega = st.number_input("Factor de Relajación (SOR)", value=1.05, step=0.05)
-    st.info("Solución esperada para el ejemplo default: [1, 2, -1]")
-
-# Construcción de la matriz
-A = np.array([[a11, a12, a13], [-1, 11, -1], [2, -1, 10]], dtype=float)
-b = np.array([b1, b2, b3], dtype=float)
-
-# --- NAVEGACIÓN POR MÉTODOS ---
-st.markdown("---")
-pestana_gs, pestana_sor, pestana_cg = st.tabs(["Gauss-Seidel", "SOR", "Gradiente Conjugado"])
-
-# --- MÉTODO 1: GAUSS-SEIDEL ---
-with pestana_gs:
-    st.header("Visualización: Gauss-Seidel")
-    x = np.zeros(3)
-    gs_pasos = [x.copy()]
+# 1. GAUSS-SEIDEL
+with tab_gs:
+    x = np.zeros(n)
+    hist_gs = [x.copy()]
     for _ in range(total_iter):
-        for j in range(3):
-            suma = b[j] - np.dot(A[j, :j], x[:j]) - np.dot(A[j, j+1:], x[j+1:])
-            x[j] = suma / A[j, j]
-        gs_pasos.append(x.copy())
+        for j in range(n):
+            suma = b_editado[j] - np.dot(A_editada[j, :j], x[:j]) - np.dot(A_editada[j, j+1:], x[j+1:])
+            x[j] = suma / A_editada[j, j]
+        hist_gs.append(x.copy())
     
-    paso_gs = st.select_slider("Moverse entre iteraciones (GS)", options=range(len(gs_pasos)), key="gs_slider")
-    st.metric(f"Vector x en iteración {paso_gs}", f"[{gs_pasos[paso_gs][0]:.4f}, {gs_pasos[paso_gs][1]:.4f}, {gs_pasos[paso_gs][2]:.4f}]")
+    val = st.select_slider("Iteración a visualizar (GS)", options=range(len(hist_gs)), key="gs")
+    st.metric("Resultado x", f"{np.round(hist_gs[val], 4)}")
 
-# --- MÉTODO 2: SOR ---
-with pestana_sor:
-    st.header(f"Visualización: SOR (ω={omega})")
-    x_s = np.zeros(3)
-    sor_pasos = [x_s.copy()]
+# 2. SOR
+with tab_sor:
+    x_s = np.zeros(n)
+    hist_sor = [x_s.copy()]
     for _ in range(total_iter):
-        for j in range(3):
-            suma = b[j] - np.dot(A[j, :j], x_s[:j]) - np.dot(A[j, j+1:], x_s[j+1:])
-            x_gs = suma / A[j, j]
-            x_s[j] = (1 - omega) * x_s[j] + omega * x_gs
-        sor_pasos.append(x_s.copy())
-        
-    paso_sor = st.select_slider("Moverse entre iteraciones (SOR)", options=range(len(sor_pasos)), key="sor_slider")
-    st.metric(f"Vector x en iteración {paso_sor}", f"[{sor_pasos[paso_sor][0]:.4f}, {sor_pasos[paso_sor][1]:.4f}, {sor_pasos[paso_sor][2]:.4f}]")
+        for j in range(n):
+            suma = b_editado[j] - np.dot(A_editada[j, :j], x_s[:j]) - np.dot(A_editada[j, j+1:], x_s[j+1:])
+            x_gs_val = suma / A_editada[j, j]
+            x_s[j] = (1 - omega) * x_s[j] + omega * x_gs_val
+        hist_sor.append(x_s.copy())
+    
+    val_s = st.select_slider("Iteración a visualizar (SOR)", options=range(len(hist_sor)), key="sor")
+    st.metric("Resultado x", f"{np.round(hist_sor[val_s], 4)}")
 
-# --- MÉTODO 3: GRADIENTE CONJUGADO ---
-with pestana_cg:
-    st.header("Visualización: Gradiente Conjugado")
-    x_c = np.zeros(3)
-    r = b - np.dot(A, x_c)
+# 3. GRADIENTE CONJUGADO
+with tab_cg:
+    x_c = np.zeros(n)
+    r = b_editado - np.dot(A_editada, x_c)
     p = r.copy()
-    cg_pasos = [x_c.copy()]
-    for _ in range(total_iter):
-        alpha = np.dot(r, r) / np.dot(p, np.dot(A, p))
-        x_c = x_c + alpha * p
-        r_n = r - alpha * np.dot(A, p)
-        beta = np.dot(r_n, r_n) / np.dot(r, r)
-        p = r_n + beta * p
-        r = r_n
-        cg_pasos.append(x_c.copy())
+    hist_cg = [x_c.copy()]
+    
+    try:
+        for _ in range(total_iter):
+            alpha = np.dot(r, r) / np.dot(p, np.dot(A_editada, p))
+            x_c = x_c + alpha * p
+            r_n = r - alpha * np.dot(A_editada, p)
+            beta = np.dot(r_n, r_n) / np.dot(r, r)
+            p = r_n + beta * p
+            r = r_n
+            hist_cg.append(x_c.copy())
+        
+        val_c = st.select_slider("Iteración a visualizar (CG)", options=range(len(hist_cg)), key="cg")
+        st.metric("Resultado x", f"{np.round(hist_cg[val_c], 4)}")
+    except Exception:
+        st.error("Error: La matriz editada no es simétrica definida positiva.")
 
-    paso_cg = st.select_slider("Moverse entre iteraciones (CG)", options=range(len(cg_pasos)), key="cg_slider")
-    st.metric(f"Vector x en iteración {paso_cg}", f"[{cg_pasos[paso_cg][0]:.4f}, {cg_pasos[paso_cg][1]:.4f}, {cg_pasos[paso_cg][2]:.4f}]")# --- EXPORTAR A EXCEL ---
+st.sidebar.markdown("---")
+st.sidebar.success(f"**Solución Exacta:**\n{x_exacto}")
+
+# --- EXPORTAR A EXCEL (CSV) ---
 st.markdown("---")
-st.header("📥 Descargar Resultados")
+st.header("📥 Descargar Resultados Generados")
 
 def generar_csv_descarga(A, b, total_iter, omega, n):
     rows = []
@@ -113,16 +126,38 @@ def generar_csv_descarga(A, b, total_iter, omega, n):
             x_s[j] = (1 - omega) * x_s[j] + omega * x_gs_val
         rows.append([i] + list(np.round(x_s, 4)))
         
+    rows.append([]) # Espacio
+    
+    # GRADIENTE CONJUGADO
+    rows.append(["MÉTODO: GRADIENTE CONJUGADO"])
+    rows.append(["Iteración"] + [f"x{i+1}" for i in range(n)])
+    x_c = np.zeros(n)
+    r = b - np.dot(A, x_c)
+    p = r.copy()
+    rows.append([0] + list(np.round(x_c, 4)))
+    try:
+        for i in range(1, total_iter + 1):
+            alpha = np.dot(r, r) / np.dot(p, np.dot(A, p))
+            x_c = x_c + alpha * p
+            r_n = r - alpha * np.dot(A, p)
+            beta = np.dot(r_n, r_n) / np.dot(r, r)
+            p = r_n + beta * p
+            r = r_n
+            rows.append([i] + list(np.round(x_c, 4)))
+    except Exception:
+        rows.append(["Error: Matriz no válida para CG en esta descarga."])
+
     # Convertir a texto CSV
     csv_text = ""
     for row in rows:
         csv_text += ",".join([str(item) for item in row]) + "\n"
     return csv_text
 
+# Generar datos y crear el botón
 csv_data = generar_csv_descarga(A_editada, b_editado, total_iter, omega, n)
 
 st.download_button(
-    label="Descargar Tabla de Iteraciones (CSV)",
+    label="📄 Descargar Tabla de Iteraciones (CSV)",
     data=csv_data,
     file_name="Resultados_Iterativos.csv",
     mime="text/csv",
